@@ -58,3 +58,13 @@ export const modifyItem = (
 
   return items[itemIndex];
 };
+
+export const getSingleItem = (id: string): Item => {
+  const item: Item | undefined = items.find((el) => el.id === id);
+
+  if (!item) {
+    throw new Error("Item not found");
+  }
+
+  return item;
+};

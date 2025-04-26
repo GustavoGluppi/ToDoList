@@ -4,10 +4,12 @@ import {
   createItem,
   deleteItem,
   getItems,
+  getSingleItem,
   modifyItem,
 } from "../controllers/itemsController";
 
 export async function routes(app: FastifyTypedInstance) {
+  // Items tag
   app.get(
     "/items",
     {
@@ -159,6 +161,53 @@ export async function routes(app: FastifyTypedInstance) {
       try {
         const modifiedItem: Item = modifyItem(id, title, description, checked);
         return res.status(201).send(modifiedItem);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          return res.status(404).send({ message: error.message });
+        } else {
+          return res.status(500).send({ message: "Internal Server Error" });
+        }
+      }
+    }
+  );
+
+  // Item tag
+  app.get(
+    "/item/:id",
+    {
+      schema: {
+        tags: ["item"],
+        description: "Retrieve informations of a single item",
+        params: z.object({
+          id: z.string(),
+        }),
+        response: {
+          200: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            checked: z.boolean(),
+            created_at: z.date(),
+          }),
+          404: z
+            .object({
+              message: z.string(),
+            })
+            .describe("item not found"),
+          505: z
+            .object({
+              message: z.string(),
+            })
+            .describe("Internal Server Error"),
+        },
+      },
+    },
+    async (req, res) => {
+      const { id } = req.params;
+
+      try {
+        const item: Item = getSingleItem(id);
+        res.status(200).send(item);
       } catch (error: unknown) {
         if (error instanceof Error) {
           return res.status(404).send({ message: error.message });
