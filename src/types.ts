@@ -18,5 +18,7 @@ export type FastifyTypedInstance = FastifyInstance<
 export interface Item {
   id: string;
   title: string;
+  description: string;
   checked: boolean;
+  created_at: Date;
 }

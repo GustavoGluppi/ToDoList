@@ -1,11 +1,11 @@
 import z from "zod";
-import { FastifyTypedInstance } from "../types";
+import { FastifyTypedInstance, Item } from "../types";
 import {
   createItem,
   deleteItem,
   getItems,
+  modifyItem,
 } from "../controllers/itemsController";
-import { time } from "console";
 
 export async function routes(app: FastifyTypedInstance) {
   app.get(
@@ -19,14 +19,25 @@ export async function routes(app: FastifyTypedInstance) {
             z.object({
               id: z.string(),
               title: z.string(),
+              description: z.string(),
               checked: z.boolean(),
+              created_at: z.date(),
             })
           ),
+          500: z
+            .object({
+              message: z.string(),
+            })
+            .describe("Internal Server Error"),
         },
       },
     },
-    async () => {
-      return getItems();
+    async (req, res) => {
+      try {
+        return getItems();
+      } catch (error) {
+        return res.status(500).send({ message: "Internal Server Error" });
+      }
     }
   );
 
@@ -38,22 +49,35 @@ export async function routes(app: FastifyTypedInstance) {
         description: "Create a new ToDo item",
         body: z.object({
           title: z.string(),
+          description: z.string(),
+          checked: z.boolean().optional(),
         }),
         response: {
           201: z
             .object({
               id: z.string(),
               title: z.string(),
+              description: z.string(),
               checked: z.boolean(),
+              created_at: z.date(),
             })
             .describe("Item created successfully"),
+          500: z
+            .object({
+              message: z.string(),
+            })
+            .describe("Internal Server Error"),
         },
       },
     },
     async (req, res) => {
-      const { title } = req.body;
-      const newItem = createItem(title);
-      return res.status(201).send(newItem);
+      try {
+        const { title, description, checked } = req.body;
+        const newItem: Item = createItem(title, description, checked);
+        return res.status(201).send(newItem);
+      } catch (error) {
+        res.status(500).send({ message: "Internal Server Error" });
+      }
     }
   );
 
@@ -86,6 +110,55 @@ export async function routes(app: FastifyTypedInstance) {
       try {
         deleteItem(id);
         return res.status(204).send();
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          return res.status(404).send({ message: error.message });
+        } else {
+          return res.status(500).send({ message: "Internal Server Error" });
+        }
+      }
+    }
+  );
+
+  app.put(
+    "/items",
+    {
+      schema: {
+        tags: ["items"],
+        description: "Edit an existent item",
+        body: z.object({
+          id: z.string(),
+          title: z.string().optional(),
+          description: z.string().optional(),
+          checked: z.boolean().optional(),
+        }),
+        response: {
+          201: z.object({
+            id: z.string(),
+            title: z.string(),
+            description: z.string(),
+            checked: z.boolean(),
+            created_at: z.date(),
+          }),
+          404: z
+            .object({
+              message: z.string(),
+            })
+            .describe("item not found"),
+          505: z
+            .object({
+              message: z.string(),
+            })
+            .describe("Internal Server Error"),
+        },
+      },
+    },
+    async (req, res) => {
+      const { id, title, description, checked } = req.body;
+
+      try {
+        const modifiedItem: Item = modifyItem(id, title, description, checked);
+        return res.status(201).send(modifiedItem);
       } catch (error: unknown) {
         if (error instanceof Error) {
           return res.status(404).send({ message: error.message });
