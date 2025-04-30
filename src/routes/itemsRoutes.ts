@@ -84,10 +84,10 @@ export async function routes(app: FastifyTypedInstance) {
   );
 
   app.delete(
-    "/items",
+    "/item",
     {
       schema: {
-        tags: ["items"],
+        tags: ["item"],
         description: "Deletes an especific item",
         body: z.object({
           id: z.string(),
@@ -123,10 +123,10 @@ export async function routes(app: FastifyTypedInstance) {
   );
 
   app.put(
-    "/items",
+    "/item",
     {
       schema: {
-        tags: ["items"],
+        tags: ["item"],
         description: "Edit an existent item",
         body: z.object({
           id: z.string(),
