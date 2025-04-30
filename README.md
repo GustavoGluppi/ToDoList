@@ -16,17 +16,18 @@ A simple ToDo List API built with Fastify, Swagger, and MongoDB. This API allows
 
 ### `ITEM` Category
 
-- **GET** `/items/{id}`
+- **GET** `/item/{id}`
 
   - Get a specific ToDo item by ID.
 
-- **DELETE** `/items/{id}`
+- **DELETE** `/item`
 
   - Delete a specific ToDo item by ID.
+  - **Body**: JSON object with `id` field.
 
-- **PUT** `/items/{id}`
+- **PUT** `/item`
   - Update a specific ToDo item by ID.
-  - **Body**: JSON object with `title`, `description`, and `checked` fields.
+  - **Body**: JSON object with `id`, `title`, `description`, and `checked` fields.
 
 ## Technologies
 
