@@ -11,7 +11,10 @@ import { fastifySwagger } from "@fastify/swagger";
 import { fastifySwaggerUi } from "@fastify/swagger-ui";
 import { routes } from "./routes/itemsRoutes";
 import dotenv from "dotenv";
+import { connectDB } from "./config/database";
 dotenv.config();
+
+connectDB();
 
 // Creates and configure the application
 export const createApp = () => {

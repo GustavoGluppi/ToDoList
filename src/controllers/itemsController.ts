@@ -1,18 +1,16 @@
 import { randomUUID } from "crypto";
 import { Item } from "../types";
-import { boolean } from "zod";
+import { itemModel } from "../models/item";
 
-let items: Item[] = [];
-
-export const getItems = (): Item[] => {
-  return items;
+export const getItems = async (): Promise<Item[]> => {
+  return await itemModel.find().lean();
 };
 
-export const createItem = (
+export const createItem = async (
   title: string,
   description: string,
   checked?: boolean
-): Item => {
+): Promise<Item> => {
   const newItem: Item = {
     id: randomUUID(),
     title,
@@ -20,35 +18,32 @@ export const createItem = (
     checked: checked ?? false,
     created_at: new Date(),
   };
-  items.push(newItem);
+  const modelInstance = new itemModel(newItem);
+  await modelInstance.save();
   return newItem;
 };
 
-export const deleteItem = (id: string): void => {
-  const itemIndex: number = items.findIndex((el) => el.id === id);
+export const deleteItem = async (id: string): Promise<void> => {
+  const deleteResult = await itemModel.deleteOne({ id: id });
 
-  if (itemIndex === -1) {
+  if (deleteResult.deletedCount === 0) {
     throw new Error("Item not found");
   }
-
-  items.splice(itemIndex, 1);
 };
 
-export const modifyItem = (
+export const modifyItem = async (
   id: string,
   title?: string,
   description?: string,
   checked?: boolean
-): Item => {
-  const itemIndex: number = items.findIndex((el) => el.id === id);
+): Promise<Item> => {
+  const item = await itemModel.findOne({ id: id });
 
-  if (itemIndex === -1) {
+  if (!item) {
     throw new Error("Item not found");
   }
 
-  const item: Item = items[itemIndex];
-
-  items[itemIndex] = {
+  const updateObj: Item = {
     id: item.id,
     title: title ?? item.title,
     description: description ?? item.description,
@@ -56,11 +51,19 @@ export const modifyItem = (
     created_at: item.created_at,
   };
 
-  return items[itemIndex];
+  if (title) updateObj.title = title;
+  if (description) updateObj.description = description;
+  if (checked !== undefined) updateObj.checked = checked;
+
+  const updatedItem = await itemModel
+    .findOneAndUpdate({ id: id }, updateObj, { new: true })
+    .lean();
+
+  return updatedItem as Item;
 };
 
-export const getSingleItem = (id: string): Item => {
-  const item: Item | undefined = items.find((el) => el.id === id);
+export const getSingleItem = async (id: string): Promise<Item> => {
+  const item = await itemModel.findOne({ id: id }).lean();
 
   if (!item) {
     throw new Error("Item not found");

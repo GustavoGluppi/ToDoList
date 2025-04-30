@@ -36,7 +36,7 @@ export async function routes(app: FastifyTypedInstance) {
     },
     async (req, res) => {
       try {
-        return getItems();
+        return await getItems();
       } catch (error) {
         return res.status(500).send({ message: "Internal Server Error" });
       }
@@ -75,7 +75,7 @@ export async function routes(app: FastifyTypedInstance) {
     async (req, res) => {
       try {
         const { title, description, checked } = req.body;
-        const newItem: Item = createItem(title, description, checked);
+        const newItem: Item = await createItem(title, description, checked);
         return res.status(201).send(newItem);
       } catch (error) {
         res.status(500).send({ message: "Internal Server Error" });
@@ -110,7 +110,7 @@ export async function routes(app: FastifyTypedInstance) {
     async (req, res) => {
       const { id } = req.body;
       try {
-        deleteItem(id);
+        await deleteItem(id);
         return res.status(204).send();
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -159,7 +159,12 @@ export async function routes(app: FastifyTypedInstance) {
       const { id, title, description, checked } = req.body;
 
       try {
-        const modifiedItem: Item = modifyItem(id, title, description, checked);
+        const modifiedItem: Item = await modifyItem(
+          id,
+          title,
+          description,
+          checked
+        );
         return res.status(201).send(modifiedItem);
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -206,7 +211,7 @@ export async function routes(app: FastifyTypedInstance) {
       const { id } = req.params;
 
       try {
-        const item: Item = getSingleItem(id);
+        const item: Item = await getSingleItem(id);
         res.status(200).send(item);
       } catch (error: unknown) {
         if (error instanceof Error) {
